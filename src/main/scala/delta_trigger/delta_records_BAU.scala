@@ -1,7 +1,7 @@
 package delta_trigger
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.functions.{col, lit, to_date}
 import org.apache.spark.sql.types._
 
@@ -59,7 +59,6 @@ object delta_records_BAU {
     val end = LocalDate.parse(curr_day)
     val between = ChronoUnit.DAYS.between(start,end).toInt
 
-    delta_DF.show()
-    //delta_DF.write.mode(SaveMode.Overwrite).save(s"src/main/resources/Output_Data/Delta_customers/Day$between.parquet")
+    delta_DF.write.mode(SaveMode.Overwrite).save(s"src/main/resources/Output_Data/Delta_customers/Day$between.parquet")
   }
 }

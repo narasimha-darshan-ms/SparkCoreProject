@@ -1,9 +1,9 @@
 package delta_trigger
 
+import org.apache.log4j._
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
-import org.apache.log4j._
 
 object delta_records_day0 {
   def main(args: Array[String]): Unit = {
