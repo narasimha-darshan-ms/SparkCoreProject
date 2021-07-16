@@ -1,10 +1,11 @@
 package delta_trigger
 
-import conf.data_schema.{factors_schema, flags_schema, ratings_schema}
+import conf.data_schema.{delta_records_schema, factors_schema, flags_schema}
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{SaveMode, SparkSession}
-import org.apache.spark.sql.functions.{col, explode, lit, map, to_date, when}
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{IntegerType, TimestampType}
+import org.apache.spark.sql.{SaveMode, SparkSession}
+
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -21,7 +22,7 @@ object delta_factors {
     val between = ChronoUnit.DAYS.between(LocalDate.parse(day0), LocalDate.parse(curr_day)).toInt
 
     /* Loading required dataframes */
-    val delta_records_DF = spark.read.schema(ratings_schema)
+    val delta_records_DF = spark.read.schema(delta_records_schema)
       .load(s"src/main/resources/Output_Data/Delta_customers/Day$between.parquet/*.snappy.parquet")
       .filter(to_date(col("load_timestamp")) === lit(curr_day))
 
@@ -65,5 +66,7 @@ object delta_factors {
 
     combinedDF.write.mode(SaveMode.Overwrite)
       .save(s"src/main/resources/Output_Data/Factors/Day$between.parquet")
+
+    spark.stop()
   }
 }

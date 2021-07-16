@@ -24,6 +24,27 @@ object data_schema {
     StructField("day", IntegerType)
   ))
 
+  val delta_records_schema: StructType = StructType(Array(
+    StructField("customer_id", StringType),
+    StructField("customer_name", StringType),
+    StructField("customer_gender", StringType),
+    StructField("customer_age", IntegerType),
+    StructField("trigger_flag", StringType),
+    StructField("curr_rating_value", StringType),
+    StructField("curr_rating_timestamp", TimestampType),
+    StructField("curr_rating_ref_i", StringType),
+    StructField("curr_rating_srce_c", StringType),
+    StructField("prev_rating_value",StringType),
+    StructField("prev_rating_timestamp", TimestampType),
+    StructField("prev_rating_ref_i", StringType),
+    StructField("prev_rating_srce_c", StringType),
+    StructField("Customer_type", StringType),
+    StructField("load_timestamp", TimestampType),
+    StructField("year", IntegerType),
+    StructField("month", IntegerType),
+    StructField("day", IntegerType)
+  ))
+
   val factors_schema: StructType = StructType(Array(
     StructField("customer_id", StringType),
     StructField("ure_rating_ref_i", StringType),

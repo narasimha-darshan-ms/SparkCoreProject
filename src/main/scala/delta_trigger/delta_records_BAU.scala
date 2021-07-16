@@ -2,8 +2,9 @@ package delta_trigger
 
 import conf.data_schema.ratings_schema
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.functions.{col, lit, to_date}
 import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.functions.{col, lit, to_date, when}
+import org.apache.spark.sql.types.{IntegerType, TimestampType}
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -33,12 +34,24 @@ object delta_records_BAU {
       .join(prev_day_DF.as("b"), $"a.customer_id" === $"b.customer_id", "left")
 
     val delta_DF = delta_joined_DF.where($"a.curr_rating_timestamp" > $"b.curr_rating_timestamp")
-      .unionAll(delta_joined_DF.where($"b.customer_id".isNull)).select($"a.*")
+      .unionAll(delta_joined_DF.where($"b.customer_id".isNull))
+      .select($"a.customer_id",$"a.customer_name",$"a.customer_gender",$"a.customer_age",$"a.trigger_flag",
+        $"a.curr_rating_value",$"a.curr_rating_timestamp",$"a.curr_rating_ref_i",$"a.curr_rating_srce_c",
+        $"a.prev_rating_value",$"a.prev_rating_timestamp",$"a.prev_rating_ref_i",$"a.prev_rating_srce_c")
+      .withColumn("Customer_type", when($"a.prev_rating_ref_i".isNull, "New Customer")
+        .otherwise("Existing Customer"))
+      .withColumn("load_timestamp",lit(curr_day+" 12:00:00").cast(TimestampType))
+      .withColumn("year", lit(curr_day.substring(0,4)).cast(IntegerType))
+      .withColumn("month", lit(curr_day.substring(5,7)).cast(IntegerType))
+      .withColumn("day", lit(curr_day.substring(8,10)).cast(IntegerType))
 
     val start = LocalDate.parse(day0)
     val end = LocalDate.parse(curr_day)
     val between = ChronoUnit.DAYS.between(start,end).toInt
 
-    delta_DF.write.mode(SaveMode.Overwrite).save(s"src/main/resources/Output_Data/Delta_customers/Day$between.parquet")
+    delta_DF.write.mode(SaveMode.Overwrite)
+      .save(s"src/main/resources/Output_Data/Delta_customers/Day$between.parquet")
+
+    spark.stop()
   }
 }
